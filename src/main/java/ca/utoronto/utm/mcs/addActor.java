@@ -28,7 +28,7 @@ public class addActor implements HttpHandler{
 		try {
             if (r.getRequestMethod().equals("PUT")) {
                 handlePut(r);
-                addactor(this.actorId);
+                addactor(this.actorId, r);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,17 +38,22 @@ public class addActor implements HttpHandler{
 	
 
 
-	public void addactor(String actorId) {
+	public void addactor(String actorId, HttpExchange r) {
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (a:actor {actorId: %actorId}) RETURN a", this.actorId);
+			String match = String.format("MATCH (a:actor {id: %actorId}) RETURN a", this.actorId);
 			StatementResult result = session.run(match);
 			
 			//check whether there is an existing record of person before adding
 			
 			if(!result.hasNext()) {
 				//create person
-				String create = 
+				String create = String.format("CREATE (a:actor {name: %name, actorid: %id}) ", this.actorname, this.actorId);
+				result = session.run(create);
+				r.sendResponseHeaders(200, 0);
 			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
 		}
 		
 	}
