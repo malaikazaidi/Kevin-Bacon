@@ -21,7 +21,7 @@ public class App
     public static void main(String[] args) throws IOException
     {
         HttpServer server = HttpServer.create(new InetSocketAddress("0.0.0.0", PORT), 0);
-        server.createContext("/api/v1/addActor", new addActor(driver));
+        server.createContext("/api/addActor", new addActor(driver));
 
 
         server.start();
