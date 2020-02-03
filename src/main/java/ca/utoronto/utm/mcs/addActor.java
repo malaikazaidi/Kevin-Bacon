@@ -28,7 +28,7 @@ public class addActor implements HttpHandler{
 		try {
             if (r.getRequestMethod().equals("PUT")) {
                 handlePut(r);
-                addactor(this.actorId, r);
+                addactor(this.actorId, this.actorname, r);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -38,18 +38,22 @@ public class addActor implements HttpHandler{
 	
 
 
-	public void addactor(String actorId, HttpExchange r) {
+	public void addactor(String actorId, String actorname, HttpExchange r) {
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (a:actor {id: %actorId}) RETURN a", this.actorId);
+			String match = String.format("MATCH (a:Actor {id: \"%s\"}) RETURN a", actorId);
 			StatementResult result = session.run(match);
+			
 			
 			//check whether there is an existing record of person before adding
 			
-			if(!result.hasNext()) {
+			if(result.hasNext() == false ) {
 				//create person
-				String create = String.format("CREATE (a:actor {name: %name, actorid: %id}) ", this.actorname, this.actorId);
-				result = session.run(create);
+				String create = String.format("CREATE (:Actor {name: \"%s\", actorId: \"%s\"}) ", actorname, actorId);
+				StatementResult res = session.run(create);
 				r.sendResponseHeaders(200, 0);
+			}
+			else {
+				return;
 			}
 		}
 		catch(Exception e) {
@@ -65,6 +69,9 @@ public class addActor implements HttpHandler{
         if(deserialized.has("actorId") && deserialized.has("name")) {
         	actorId = deserialized.getString("actorId");
         	actorname = deserialized.getString("name");
+        }
+        else {
+        	r.sendResponseHeaders(400, 0);
         }
        
     }
