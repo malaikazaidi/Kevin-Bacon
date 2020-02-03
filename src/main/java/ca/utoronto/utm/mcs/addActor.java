@@ -47,7 +47,6 @@ public class addActor implements HttpHandler{
 			
 			if(!result.hasNext()) {
 				//create person
-				String create = 
 			}
 		}
 		
