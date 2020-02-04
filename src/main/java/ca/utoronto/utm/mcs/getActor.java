@@ -77,8 +77,6 @@ public class getActor implements HttpHandler{
 				//actor not found error
 				r.sendResponseHeaders(404, 0);
 			}
-			
-			
 		}
 		catch(Exception e) {
 			e.printStackTrace();
