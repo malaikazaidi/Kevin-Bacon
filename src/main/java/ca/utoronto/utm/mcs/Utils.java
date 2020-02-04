@@ -13,4 +13,10 @@ public class Utils {
             return br.lines().collect(Collectors.joining(System.lineSeparator()));
 	}
     }
+    public static String parseRecord(String record) {
+    	record = record.replace("[", "");
+    	record = record.replace("]", "");
+    	record = record.replace("\"", "");
+    	return record;
+	}
 }

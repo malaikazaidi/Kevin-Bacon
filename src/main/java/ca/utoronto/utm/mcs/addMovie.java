@@ -62,6 +62,7 @@ public class addMovie implements HttpHandler {
         	moveId = deserialized.getString("moveId");
         	name = deserialized.getString("name");
         }
+      
        
     }
 
