@@ -14,8 +14,8 @@ import com.sun.net.httpserver.HttpHandler;
 
 public class addMovie implements HttpHandler {
 
-	private String moveId;
 	private String name;
+	private String movieId;
 	private Driver driver;
 
 
@@ -28,29 +28,12 @@ public class addMovie implements HttpHandler {
 		try {
             if (r.getRequestMethod().equals("PUT")) {
                 handlePut(r);
-                addmovie(this.moveId, this.name);
+            } else if (r.getRequestMethod().equals("GET")) {
+            	handleGet(r);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-		
-	}
-	
-
-
-	public void addmovie(String moveId, String movieName) {
-		try (Session session = driver.session()){
-			String match = String.format("MATCH (m:movie {moveId: %moveId}) RETURN m", moveId);
-			StatementResult result = session.run(match);
-			
-			//check whether there is an existing record of movie before adding
-			
-			if(!result.hasNext()) {
-				//create movie
-				String create = String.format("CREATE (m:movie {moveId: %moveId, name: %movieName} RETURN m)", moveId, movieName);
-				StatementResult res = session.run(create);
-			}
-		}
 		
 	}
 
@@ -58,18 +41,58 @@ public class addMovie implements HttpHandler {
         String body = Utils.convert(r.getRequestBody());
         JSONObject deserialized = new JSONObject(body);
         
-        if(deserialized.has("moveId") && deserialized.has("name")) {
-        	moveId = deserialized.getString("moveId");
+        if(deserialized.has("name") && deserialized.has("movieId")) {
         	name = deserialized.getString("name");
+        	movieId = deserialized.getString("movieId");
         }
-       
-    }
 
 	
+		try (Session session = driver.session()){
+			String match = String.format("MATCH (m:movie {movieId: \"%s\"}) RETURN m", movieId);
+			StatementResult result = session.run(match);
+			
+			//check whether there is an existing record of movie before adding
+			
+			if(result.hasNext() == false) {
+				//create movie
+				String create = String.format("CREATE (m:movie {name: \"%s\", movieId: \"%s\"})", name, movieId);
+				StatementResult res = session.run(create);
+				r.sendResponseHeaders(200, 0);
+			} else {
+				r.sendResponseHeaders(400, 0);
+				return;
+			}
+		}
+		catch(Exception e) {
+			r.sendResponseHeaders(500, 0);
+		}
+	}
 	
-	
-	
-	
+	public void handleGet(HttpExchange r) throws IOException, JSONException{
+		String body = Utils.convert(r.getRequestBody());
+        JSONObject deserialized = new JSONObject(body);
+        
+        if (deserialized.has("name") && deserialized.has("movieId")) {
+        	this.name = deserialized.getString("name");
+        	this.movieId = deserialized.getString("movieId");
+        }
+        
+        try (Session session = driver.session()) {
+        	String match = String.format("MATCH (m:movie {movieId: \"%s\"}) RETURN m", movieId);
+        	StatementResult result = session.run(match);
+        	//need to send 400 bad request somehow
+        	
+        	if (result.hasNext() == true) {
+        		r.sendResponseHeaders(200, 0);
+        	} else {
+        		r.sendResponseHeaders(404, 0);
+        	}
+        }
+        catch(Exception e) {
+        	r.sendResponseHeaders(500, 0);
+        }
+            
+	}
 	
 	
 }
