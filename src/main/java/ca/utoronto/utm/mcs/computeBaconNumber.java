@@ -9,20 +9,20 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-import org.neo4j.driver.v1.Value;
+import org.neo4j.driver.v1.types.Path;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-public class getActor implements HttpHandler{
+public class computeBaconNumber implements HttpHandler{
 
 	private Driver driver;
 	private String actorId;
-	private String actorname;
-	private JSONObject response = new JSONObject() ;
+	private String baconNumber;
+	private JSONObject response = new JSONObject();
 
-	public getActor(Driver driver) {
-		this.driver = driver;
+	public computeBaconNumber(Driver driver) {
+		this.driver=driver;
 	}
 
 	@Override
@@ -30,7 +30,7 @@ public class getActor implements HttpHandler{
 		try {
             if (r.getRequestMethod().equals("GET")) {
                 handleGet(r);
-                getactor(this.actorId, this.actorname, r);
+                getBaconNumber(this.actorId, r);
                 r.sendResponseHeaders(200, 0);
             }
             else {
@@ -45,37 +45,43 @@ public class getActor implements HttpHandler{
 		
 	}
 
-	private void getactor(String actorId, String actorname, HttpExchange r) {
+	private void getBaconNumber(String actorId, HttpExchange r) {
 		try (Session session = driver.session()){
 			String match = String.format("MATCH (a:Actor {actorId: \"%s\"}) RETURN a.name", actorId);
 			StatementResult result = session.run(match);
 			
 			//if there is a record with the actorid then get the info
 			if(result.hasNext()) {
-				this.actorname = Utils.parseRecord(result.next().values().toString());
 				
-				String matchmovie = String.format("MATCH (a:Actor {actorId:\"%s\"})-[r:ActedIn]->(m:Movies) RETURN m.movieId", actorId);
-				result = session.run(matchmovie);
-				List<Record> movielist = result.list();
+				String baconpath = String.format("MATCH p=shortestPath((bacon:Actor {actorId:\"nm0000102\"})-[*]-(a:Actor {actorId:\"%s\"})) RETURN p", this.actorId);
+				result = session.run(baconpath);
 				
-				JSONArray movies = new JSONArray();
-				for(Record record: movielist ) {
-					movies.put(Utils.parseRecord(record.values().toString()));
+				//count the relationships {} and divide by 2 to get the bacon number
+				if(result.hasNext()) {
+					Path path = result.single().get(0).asPath();
+					
+					int lengthofpath = path.length();
+					this.baconNumber = String.valueOf((lengthofpath/2));
+						
+						
+					response.put("baconNumber:", this.baconNumber);
+				    r.sendResponseHeaders(200, response.toString().getBytes().length);
+				   
+				        
+				    OutputStream os = r.getResponseBody();
+				    os.write(response.toString().getBytes());
+				    os.close();
+						
 				}
-				System.out.print(this.actorname);
-				response.put("actorId:", this.actorId);
-				response.put("name:", this.actorname);
-				response.put("movies:", movies);
-		        r.sendResponseHeaders(200, response.toString().getBytes().length);
-		   
-		        
-		        OutputStream os = r.getResponseBody();
-		        os.write(response.toString().getBytes());
-		        os.close();
+				else {
+						//there is not path with this actor
+						r.sendResponseHeaders(404, 0);
+				}
+				
 			}
 			else {
 				//actor not found error
-				r.sendResponseHeaders(404, 0);
+				r.sendResponseHeaders(400, 0);
 			}
 			
 			
@@ -95,11 +101,6 @@ public class getActor implements HttpHandler{
         else {
         	r.sendResponseHeaders(400, 0);
         }
-       
-		
 	}
 	
-	
-
-    
 }
