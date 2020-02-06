@@ -31,7 +31,6 @@ public class computeBaconPath implements HttpHandler{
             if (r.getRequestMethod().equals("GET")) {
                 handleGet(r);
                 getBaconPath(this.actorId, r);
-                r.sendResponseHeaders(200, 0);
             }
             else {
             	//Send 400 error
@@ -45,7 +44,7 @@ public class computeBaconPath implements HttpHandler{
 		
 	}
 
-	private void getBaconPath(String actorId, HttpExchange r) {
+	private void getBaconPath(String actorId, HttpExchange r) throws IOException, JSONException {
 		try (Session session = driver.session()){
 			String match = String.format("MATCH (a:Actor {actorId: \"%s\"}) RETURN a.name", actorId);
 			StatementResult result = session.run(match);
@@ -100,7 +99,7 @@ public class computeBaconPath implements HttpHandler{
 			
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			r.sendResponseHeaders(500, 0);
 		}
 	}
 
