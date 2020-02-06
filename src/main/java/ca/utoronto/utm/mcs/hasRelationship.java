@@ -39,7 +39,7 @@ public class hasRelationship implements HttpHandler {
 		String body = Utils.convert(r.getRequestBody());
         JSONObject deserialized = new JSONObject(body);
         
-        if(deserialized.has("actorId") && deserialized.has("movieId")) {
+        if(deserialized.has("actorId") && deserialized.has("movieId") && deserialized.length() == 2) {
         	this.actorId = deserialized.getString("actorId");
         	this.movieId = deserialized.getString("movieId");
         } else {
@@ -55,7 +55,7 @@ public class hasRelationship implements HttpHandler {
         	if (result1.hasNext() == false || result2.hasNext() == false) {
         		r.sendResponseHeaders(404, 0);
         	} else {
-        		String match = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" RETURN EXISTS((m)-[:hasRelationship]->(a))", this.movieId, this.actorId);
+        		String match = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" RETURN EXISTS((m)-[r:ActedIn]->(a))", this.movieId, this.actorId);
     			StatementResult result = session.run(match);
     			//check whether there is an existing record of movie before adding
     			Record rec = result.single();

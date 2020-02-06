@@ -41,7 +41,7 @@ public class getMovie implements HttpHandler {
 		String body = Utils.convert(r.getRequestBody());
         JSONObject deserialized = new JSONObject(body);
         
-        if (deserialized.has("movieId")) {
+        if (deserialized.has("movieId") && deserialized.length() == 1) {
         	this.movieId = deserialized.getString("movieId");
         } else {
         	r.sendResponseHeaders(400, 0);

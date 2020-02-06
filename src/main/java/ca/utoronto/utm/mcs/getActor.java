@@ -86,7 +86,7 @@ public class getActor implements HttpHandler{
 		String body = Utils.convert(r.getRequestBody());
         JSONObject deserialized = new JSONObject(body);
         
-        if(deserialized.has("actorId")) {
+        if(deserialized.has("actorId") && deserialized.length() == 1) {
         	actorId = deserialized.getString("actorId");
         }
         else {

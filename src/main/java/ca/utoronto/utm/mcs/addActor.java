@@ -70,7 +70,7 @@ public class addActor implements HttpHandler{
         String body = Utils.convert(r.getRequestBody());
         JSONObject deserialized = new JSONObject(body);
         
-        if(deserialized.has("actorId") && deserialized.has("name")) {
+        if(deserialized.has("actorId") && deserialized.has("name") && deserialized.length() == 2) {
         	actorId = deserialized.getString("actorId");
         	actorname = deserialized.getString("name");
         }

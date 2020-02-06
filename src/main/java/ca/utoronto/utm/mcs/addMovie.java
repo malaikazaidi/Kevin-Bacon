@@ -42,8 +42,7 @@ public class addMovie implements HttpHandler {
 	public void handlePut(HttpExchange r) throws IOException, JSONException {
         String body = Utils.convert(r.getRequestBody());
         JSONObject deserialized = new JSONObject(body);
-        
-        if(deserialized.has("name") && deserialized.has("movieId")) {
+        if(deserialized.has("name") && deserialized.has("movieId") && deserialized.length() == 2) {
         	this.name = deserialized.getString("name");
         	this.movieId = deserialized.getString("movieId");
         } else {

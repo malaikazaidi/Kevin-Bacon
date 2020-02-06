@@ -2,6 +2,7 @@ package ca.utoronto.utm.mcs;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 
 import org.json.*;
 import org.neo4j.driver.v1.Driver;
@@ -42,7 +43,7 @@ public class addRelationship implements HttpHandler {
         String body = Utils.convert(r.getRequestBody());
         JSONObject deserialized = new JSONObject(body);
         
-        if(deserialized.has("actorId") && deserialized.has("movieId")) {
+        if(deserialized.has("actorId") && deserialized.has("movieId") && deserialized.length() == 2) {
         	this.actorId = deserialized.getString("actorId");
         	this.movieId = deserialized.getString("movieId");
         } else {
@@ -51,12 +52,12 @@ public class addRelationship implements HttpHandler {
 
 	
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" RETURN EXISTS((m)-[:hasRelationship]->(a))", this.movieId, this.actorId);
+			String match = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" RETURN EXISTS((m)-[r:ActedIn]->(a))", this.movieId, this.actorId);
 			StatementResult result = session.run(match);
 			
 			Record rec = result.single();
 			if(rec.toString().contains("FALSE")) {
-				String create = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" CREATE (m)-[r:hasRelationship]->(a) RETURN r ", this.movieId, this.actorId);
+				String create = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" CREATE (m)-[r:ActedIn]->(a) RETURN r ", this.movieId, this.actorId);
 				StatementResult res = session.run(create);
 				r.sendResponseHeaders(200, 0);
 				
