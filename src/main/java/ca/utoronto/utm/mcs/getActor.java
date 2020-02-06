@@ -31,7 +31,6 @@ public class getActor implements HttpHandler{
             if (r.getRequestMethod().equals("GET")) {
                 handleGet(r);
                 getactor(this.actorId, this.actorname, r);
-                r.sendResponseHeaders(200, 0);
             }
             else {
             	//Send 400 error
@@ -45,7 +44,7 @@ public class getActor implements HttpHandler{
 		
 	}
 
-	private void getactor(String actorId, String actorname, HttpExchange r) {
+	private void getactor(String actorId, String actorname, HttpExchange r) throws IOException, JSONException{
 		try (Session session = driver.session()){
 			String match = String.format("MATCH (a:Actor {actorId: \"%s\"}) RETURN a.name", actorId);
 			StatementResult result = session.run(match);
@@ -79,7 +78,7 @@ public class getActor implements HttpHandler{
 			}
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			r.sendResponseHeaders(500, 0);
 		}
 	}
 

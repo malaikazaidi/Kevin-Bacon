@@ -29,7 +29,6 @@ public class addActor implements HttpHandler{
             if (r.getRequestMethod().equals("PUT")) {
                 handlePut(r);
                 addactor(this.actorId, this.actorname, r);
-                r.sendResponseHeaders(200, 0);
             }
             else {
             	//Send 400 error
@@ -37,14 +36,13 @@ public class addActor implements HttpHandler{
             }
         } catch (Exception e) {
         	r.sendResponseHeaders(500, 0);
-            e.printStackTrace();
         }
 		
 	}
 	
 
 
-	public void addactor(String actorId, String actorname, HttpExchange r) {
+	public void addactor(String actorId, String actorname, HttpExchange r) throws IOException, JSONException {
 		try (Session session = driver.session()){
 			String match = String.format("MATCH (a:Actor {actorId: \"%s\"}) RETURN a", actorId);
 			StatementResult result = session.run(match);
@@ -56,13 +54,14 @@ public class addActor implements HttpHandler{
 				//create person
 				String create = String.format("CREATE (:Actor {name: \"%s\", actorId: \"%s\"}) ", actorname, actorId);
 				result = session.run(create);
+				r.sendResponseHeaders(200, 0);
 			}
 			else {
-				return;
+				r.sendResponseHeaders(404, 0);
 			}
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			r.sendResponseHeaders(500, 0);
 		}
 		
 	}
@@ -78,7 +77,6 @@ public class addActor implements HttpHandler{
         else {
         	r.sendResponseHeaders(400, 0);
         }
-       
     }
 
 	
