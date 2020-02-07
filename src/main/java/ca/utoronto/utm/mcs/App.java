@@ -27,7 +27,7 @@ public class App
         server.createContext("/api/v1/addMovie", new addMovie(driver));
         server.createContext("/api/v1/getMovie", new getMovie(driver));
         server.createContext("/api/v1/addRelationship", new addRelationship(driver));
-        server.createContext("/api/v1/hasRelationship", new addRelationship(driver));
+        server.createContext("/api/v1/hasRelationship", new hasRelationship(driver));
         server.createContext("/api/v1/computeBaconNumber", new computeBaconNumber(driver));
         server.createContext("/api/v1/computeBaconPath", new computeBaconPath(driver));
         

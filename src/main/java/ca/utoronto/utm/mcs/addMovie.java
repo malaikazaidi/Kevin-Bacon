@@ -32,9 +32,13 @@ public class addMovie implements HttpHandler {
                 handlePut(r);
             } else {
             	r.sendResponseHeaders(400, 0);
+            	OutputStream os = r.getResponseBody();
+		        os.close();
             }
         } catch (Exception e) {
         	r.sendResponseHeaders(500, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
 		
 	}
@@ -51,22 +55,28 @@ public class addMovie implements HttpHandler {
 
 	
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (m:movie {movieId: \"%s\"}) RETURN m", this.movieId);
+			String match = String.format("MATCH (m:movie {id: \"%s\"}) RETURN m", this.movieId);
 			StatementResult result = session.run(match);
 			
 			//check whether there is an existing record of movie before adding
 			
 			if(result.hasNext() == false) {
 				//create movie
-				String create = String.format("CREATE (m:movie {name: \"%s\", movieId: \"%s\"})", this.name, this.movieId);
+				String create = String.format("CREATE (m:movie {Name: \"%s\", id: \"%s\"})", this.name, this.movieId);
 				StatementResult res = session.run(create);
 				r.sendResponseHeaders(200, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
 			} else {
-				r.sendResponseHeaders(404, 0);
+				r.sendResponseHeaders(400, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
 			}
 		}
 		catch(Exception e) {
 			r.sendResponseHeaders(500, 0);
+			OutputStream os = r.getResponseBody();
+	        os.close();
 		}
 	}
 	

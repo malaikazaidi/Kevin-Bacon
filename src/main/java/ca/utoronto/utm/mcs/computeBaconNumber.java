@@ -35,57 +35,75 @@ public class computeBaconNumber implements HttpHandler{
             else {
             	//Send 400 error
 				r.sendResponseHeaders(400, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
             }
         } catch (Exception e) {
         	//send 500 error
         	r.sendResponseHeaders(500, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
 		
 	}
 
 	private void getBaconNumber(String actorId, HttpExchange r) throws IOException, JSONException{
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (a:Actor {actorId: \"%s\"}) RETURN a.name", actorId);
+			String match = String.format("MATCH (a:actor {id: \"%s\"}) RETURN a.Name", this.actorId);
 			StatementResult result = session.run(match);
+			
 			
 			//if there is a record with the actorid then get the info
 			if(result.hasNext()) {
-				
-				String baconpath = String.format("MATCH p=shortestPath((bacon:Actor {actorId:\"nm0000102\"})-[*]-(a:Actor {actorId:\"%s\"})) RETURN p", this.actorId);
-				result = session.run(baconpath);
-				
-				//count the relationships {} and divide by 2 to get the bacon number
-				if(result.hasNext()) {
-					Path path = result.single().get(0).asPath();
-					
-					int lengthofpath = path.length();
-					this.baconNumber = String.valueOf((lengthofpath/2));
-						
-						
-					response.put("baconNumber:", this.baconNumber);
+				if((this.actorId).equals("nm0000102")) {
+					//if it is Kevin Bacon
+					response.put("baconNumber", "0");
 				    r.sendResponseHeaders(200, response.toString().getBytes().length);
 				   
 				        
 				    OutputStream os = r.getResponseBody();
 				    os.write(response.toString().getBytes());
 				    os.close();
-						
 				}
 				else {
-						//there is not path with this actor
-						r.sendResponseHeaders(404, 0);
+					String baconpath = String.format("MATCH p=shortestPath((bacon:actor {id:\"nm0000102\"})-[*]-(a:actor {id:\"%s\"})) RETURN p", this.actorId);
+					result = session.run(baconpath);
+					//count the relationships {} and divide by 2 to get the bacon number
+					if(result.hasNext()) {
+						Path path = result.single().get(0).asPath();
+						int lengthofpath = path.length();
+						this.baconNumber = String.valueOf((lengthofpath/2));
+							
+							
+						response.put("baconNumber", this.baconNumber);
+					    r.sendResponseHeaders(200, response.toString().getBytes().length);
+					   
+					        
+					    OutputStream os = r.getResponseBody();
+					    os.write(response.toString().getBytes());
+					    os.close();
+							
+					}
+					else {
+							//there is no path with this actor
+							r.sendResponseHeaders(404, 0);
+							OutputStream os = r.getResponseBody();
+					        os.close();
+					}
 				}
-				
 			}
 			else {
 				//actor not found error
 				r.sendResponseHeaders(400, 0);
+				OutputStream os = r.getResponseBody();
+			       os.close();
 			}
-			
 			
 		}
 		catch(Exception e) {
 			r.sendResponseHeaders(500, 0);
+			OutputStream os = r.getResponseBody();
+	        os.close();
 		}
 	}
 
@@ -94,10 +112,12 @@ public class computeBaconNumber implements HttpHandler{
         JSONObject deserialized = new JSONObject(body);
         
         if(deserialized.has("actorId") && deserialized.length() == 1) {
-        	actorId = deserialized.getString("actorId");
+        	this.actorId = deserialized.getString("actorId");
         }
         else {
         	r.sendResponseHeaders(400, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
 	}
 	

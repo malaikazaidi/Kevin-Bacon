@@ -35,10 +35,14 @@ public class getActor implements HttpHandler{
             else {
             	//Send 400 error
 				r.sendResponseHeaders(400, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
             }
         } catch (Exception e) {
         	//send 500 error
         	r.sendResponseHeaders(500, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
             e.printStackTrace();
         }
 		
@@ -46,14 +50,14 @@ public class getActor implements HttpHandler{
 
 	private void getactor(String actorId, String actorname, HttpExchange r) throws IOException, JSONException{
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (a:Actor {actorId: \"%s\"}) RETURN a.name", actorId);
+			String match = String.format("MATCH (a:actor {id: \"%s\"}) RETURN a.Name", this.actorId);
 			StatementResult result = session.run(match);
 			
 			//if there is a record with the actorid then get the info
 			if(result.hasNext()) {
 				this.actorname = Utils.parseRecord(result.next().values().toString());
 				
-				String matchmovie = String.format("MATCH (a:Actor {actorId:\"%s\"})-[r:ActedIn]->(m:Movies) RETURN m.movieId", actorId);
+				String matchmovie = String.format("MATCH (a:actor {id:\"%s\"})--(m:movie) RETURN m.id", this.actorId);
 				result = session.run(matchmovie);
 				List<Record> movielist = result.list();
 				
@@ -61,10 +65,9 @@ public class getActor implements HttpHandler{
 				for(Record record: movielist ) {
 					movies.put(Utils.parseRecord(record.values().toString()));
 				}
-				System.out.print(this.actorname);
-				response.put("actorId:", this.actorId);
-				response.put("name:", this.actorname);
-				response.put("movies:", movies);
+				response.put("actorId", this.actorId);
+				response.put("name", this.actorname);
+				response.put("movies", movies);
 		        r.sendResponseHeaders(200, response.toString().getBytes().length);
 		   
 		        
@@ -75,10 +78,14 @@ public class getActor implements HttpHandler{
 			else {
 				//actor not found error
 				r.sendResponseHeaders(404, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
 			}
 		}
 		catch(Exception e) {
 			r.sendResponseHeaders(500, 0);
+			OutputStream os = r.getResponseBody();
+	        os.close();
 		}
 	}
 
@@ -87,10 +94,12 @@ public class getActor implements HttpHandler{
         JSONObject deserialized = new JSONObject(body);
         
         if(deserialized.has("actorId") && deserialized.length() == 1) {
-        	actorId = deserialized.getString("actorId");
+        	this.actorId = deserialized.getString("actorId");
         }
         else {
         	r.sendResponseHeaders(400, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
        
 		

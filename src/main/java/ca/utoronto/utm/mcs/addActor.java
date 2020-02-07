@@ -33,9 +33,13 @@ public class addActor implements HttpHandler{
             else {
             	//Send 400 error
 				r.sendResponseHeaders(400, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
             }
         } catch (Exception e) {
         	r.sendResponseHeaders(500, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
 		
 	}
@@ -44,7 +48,7 @@ public class addActor implements HttpHandler{
 
 	public void addactor(String actorId, String actorname, HttpExchange r) throws IOException, JSONException {
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (a:Actor {actorId: \"%s\"}) RETURN a", actorId);
+			String match = String.format("MATCH (a:actor {id: \"%s\"}) RETURN a", this.actorId);
 			StatementResult result = session.run(match);
 			
 			
@@ -52,16 +56,23 @@ public class addActor implements HttpHandler{
 			
 			if(result.hasNext() == false ) {
 				//create person
-				String create = String.format("CREATE (:Actor {name: \"%s\", actorId: \"%s\"}) ", actorname, actorId);
+				String create = String.format("CREATE (a:actor {Name: \"%s\", id: \"%s\"}) ", this.actorname, this.actorId);
 				result = session.run(create);
 				r.sendResponseHeaders(200, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
+				
 			}
 			else {
-				r.sendResponseHeaders(404, 0);
+				r.sendResponseHeaders(400, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
 			}
 		}
 		catch(Exception e) {
 			r.sendResponseHeaders(500, 0);
+			OutputStream os = r.getResponseBody();
+	        os.close();
 		}
 		
 	}
@@ -76,6 +87,8 @@ public class addActor implements HttpHandler{
         }
         else {
         	r.sendResponseHeaders(400, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
     }
 

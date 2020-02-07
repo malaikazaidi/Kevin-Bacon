@@ -31,9 +31,13 @@ public class getMovie implements HttpHandler {
                 handleGet(r);
             } else {
             	r.sendResponseHeaders(400, 0);
+            	OutputStream os = r.getResponseBody();
+		        os.close();
             }
         } catch (Exception e) {
         	r.sendResponseHeaders(500, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
 	}
 	
@@ -45,17 +49,19 @@ public class getMovie implements HttpHandler {
         	this.movieId = deserialized.getString("movieId");
         } else {
         	r.sendResponseHeaders(400, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
         
         try (Session session = driver.session()) {
         	
-        	String match = String.format("MATCH (m:movie {movieId: \"%s\"}) RETURN m.name", this.movieId);
+        	String match = String.format("MATCH (m:movie {id: \"%s\"}) RETURN m.Name", this.movieId);
         	StatementResult result = session.run(match);
         	
         	if (result.hasNext() == true) {
         		this.name = Utils.parseRecord(result.next().values().toString());
         		
-        		String query = String.format("MATCH (m:movie {movieId:\"%s\"})-[:hasRelationship]->(a:Actor) RETURN a.actorId", this.movieId);
+        		String query = String.format("MATCH (m:movie {id:\"%s\"})--(a:actor) RETURN a.id", this.movieId);
         		result = session.run(query);
 				List<Record> actorList = result.list();
 				
@@ -64,9 +70,9 @@ public class getMovie implements HttpHandler {
 				for(Record record: actorList ) {
 					actors.put(Utils.parseRecord(record.values().toString()));
 				}
-				this.response.put("movieId:", this.movieId);
-				this.response.put("name:", this.name);
-				this.response.put("actors:", actors);
+				this.response.put("movieId", this.movieId);
+				this.response.put("name", this.name);
+				this.response.put("actors", actors);
         		
         		OutputStream os = r.getResponseBody();
         		r.sendResponseHeaders(200, response.toString().getBytes().length);
@@ -74,10 +80,14 @@ public class getMovie implements HttpHandler {
         		os.close();
         	} else {
         		r.sendResponseHeaders(404, 0);
+        		OutputStream os = r.getResponseBody();
+		        os.close();
         	}
         }
         catch(Exception e) {
         	r.sendResponseHeaders(500, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
             
 	}

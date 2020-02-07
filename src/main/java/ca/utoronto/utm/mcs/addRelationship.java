@@ -32,9 +32,13 @@ public class addRelationship implements HttpHandler {
                 handlePut(r);
             } else {
             	r.sendResponseHeaders(400, 0);
+            	OutputStream os = r.getResponseBody();
+		        os.close();
             }
         } catch (Exception e) {
         	r.sendResponseHeaders(500, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
 		
 	}
@@ -48,25 +52,41 @@ public class addRelationship implements HttpHandler {
         	this.movieId = deserialized.getString("movieId");
         } else {
         	r.sendResponseHeaders(400, 0);
+        	OutputStream os = r.getResponseBody();
+	        os.close();
         }
 
 	
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" RETURN EXISTS((m)-[r:ActedIn]->(a))", this.movieId, this.actorId);
+			String match = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" RETURN EXISTS((m)-[:ACTED_IN]->(a))", this.movieId, this.actorId);
 			StatementResult result = session.run(match);
 			
-			Record rec = result.single();
-			if(rec.toString().contains("FALSE")) {
-				String create = String.format("MATCH (m:movie), (a:Actor) WHERE m.movieId = \"%s\" AND a.actorId = \"%s\" CREATE (m)-[r:ActedIn]->(a) RETURN r ", this.movieId, this.actorId);
-				StatementResult res = session.run(create);
-				r.sendResponseHeaders(200, 0);
-				
-			} else {
+			if(result.hasNext()) {
+				Record rec = result.single();
+				if(rec.toString().contains("FALSE")) {
+					String create = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" CREATE (m)-[r:ACTED_IN]->(a) RETURN r ", this.movieId, this.actorId);
+					StatementResult res = session.run(create);
+					r.sendResponseHeaders(200, 0);
+					OutputStream os = r.getResponseBody();
+			        os.close();
+					
+				} else {
+					r.sendResponseHeaders(400, 0);
+					OutputStream os = r.getResponseBody();
+			        os.close();
+				}
+			}
+			else {
+				//node not found
 				r.sendResponseHeaders(404, 0);
+				OutputStream os = r.getResponseBody();
+		        os.close();
 			}
 		}
 		catch(Exception e) {
 			r.sendResponseHeaders(500, 0);
+			OutputStream os = r.getResponseBody();
+	        os.close();
 		}
 	}
 	
