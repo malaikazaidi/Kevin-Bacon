@@ -14,6 +14,7 @@ import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.types.Path;
 import org.neo4j.driver.v1.types.Path.Segment;
+import org.neo4j.driver.v1.util.Pair;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -79,50 +80,49 @@ public class computeBaconPath implements HttpHandler{
 				    os.close();
 				}
 				else {
-					String baconpath = String.format("MATCH p=shortestPath((a:actor {id:\"%s\"})-[*]-(b:actor {id:\"nm0000102\"})) RETURN nodes(p)", this.actorId);
+					String baconpath = String.format("MATCH p=shortestPath((a:actor {id:\"%s\"})-[*]-(b:actor {id:\"nm0000102\"})) RETURN p", this.actorId);
 					result = session.run(baconpath);
-					StatementResult result2 = session.run(baconpath);
 					//count the relationships {} and divide by 2 to get the bacon number
 					if(result.hasNext()) {
-						
-
-						
-					//	Path path2 = result2.single().get(0).asPath();
-						
-					//	int lengthofpath = path2.length();
-					//	this.baconNumber = String.valueOf((lengthofpath/2));
-						
-					//	Record path = result.single();
-	
-					//	JSONArray array = new JSONArray();
-						
-						
-						
-						//for(int i=0; i<Integer.valueOf(this.baconNumber)-1; i++) {
-					//	JSONObject responsepath = new JSONObject();
-					//	responsepath.put("actorId", path.get("nodes(p)").get(0).get("id").asString());
-						//responsepath.put("movieId", path.get("nodes(p)").get(1).get("id").asString());
-					//	array.put(responsepath);
-						//}
-						
-						
-						
-					//	Iterator<Segment> p= path.iterator();
-					//	JSONArray array = new JSONArray();
-						
-						//while(p.hasNext()) {
-					//		JSONObject o = new JSONObject(p.next());
-						//}
-						
-						
+						Path path = result.single().get(0).asPath();
+						int lengthofpath = path.length();
+						this.baconNumber = String.valueOf((lengthofpath/2));
+				
 						response.put("baconNumber", this.baconNumber);
-					//	response.put("baconPath", array);
+						JSONArray array = new JSONArray();
+						for (Segment i:path) {
+							String checkstart = String.format("MATCH (r) WHERE ID(r) = %d RETURN labels(r) ", i.start().id());
+							StatementResult result2 = session.run(checkstart);
+							JSONObject responsepath = new JSONObject();
+							String s = new String("actor");
+							String x = result2.single().get(0).toString();
+							//if first node is actor
+							if(x.contains(s)) {
+								responsepath.put("actorId", Utils.removequotation(i.start().get("id").toString()));
+								responsepath.put("movieId", Utils.removequotation(i.end().get("id").toString()));
+								array.put(responsepath);
+							}
+							
+							//first node is movie
+							else {
+								responsepath.put("actorId", Utils.removequotation(i.end().get("id").toString()));
+								responsepath.put("movieId", Utils.removequotation(i.start().get("id").toString()));
+								array.put(responsepath);
+							}
+					
+							
+						}
+						
+						
+						JSONObject responsepath = new JSONObject();
+							
+						response.put("baconPath", array);
 					    r.sendResponseHeaders(200, response.toString().getBytes().length);
-					   
-					        
 					    OutputStream os = r.getResponseBody();
 					    os.write(response.toString().getBytes());
 					    os.close();
+					        
+		
 					}
 					else {
 						//there is not path with this actor
@@ -145,6 +145,7 @@ public class computeBaconPath implements HttpHandler{
 			
 		}
 		catch(Exception e) {
+			System.out.print("hhhheh");
 			r.sendResponseHeaders(500, 0);
 			OutputStream os = r.getResponseBody();
 	        os.close();

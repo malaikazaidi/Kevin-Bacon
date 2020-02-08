@@ -58,13 +58,13 @@ public class addRelationship implements HttpHandler {
 
 	
 		try (Session session = driver.session()){
-			String match = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" RETURN EXISTS((m)-[:ACTED_IN]->(a))", this.movieId, this.actorId);
+			String match = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" RETURN EXISTS((a)-[:ACTED_IN]->(m))", this.movieId, this.actorId);
 			StatementResult result = session.run(match);
 			
 			if(result.hasNext()) {
 				Record rec = result.single();
 				if(rec.toString().contains("FALSE")) {
-					String create = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" CREATE (m)-[r:ACTED_IN]->(a) RETURN r ", this.movieId, this.actorId);
+					String create = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" CREATE (a)-[r:ACTED_IN]->(m) RETURN r ", this.movieId, this.actorId);
 					StatementResult res = session.run(create);
 					r.sendResponseHeaders(200, 0);
 					OutputStream os = r.getResponseBody();

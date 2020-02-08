@@ -19,4 +19,8 @@ public class Utils {
     	record = record.replace("\"", "");
     	return record;
 	}
+    public static String removequotation(String val) {
+    	val = val.replace("\"", "");
+    	return val;
+    }
 }

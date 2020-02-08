@@ -64,7 +64,7 @@ public class hasRelationship implements HttpHandler {
         		OutputStream os = r.getResponseBody();
         		os.close();
         	} else {
-        		String match = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" RETURN EXISTS((m)--(a))", this.movieId, this.actorId);
+        		String match = String.format("MATCH (m:movie), (a:actor) WHERE m.id = \"%s\" AND a.id = \"%s\" RETURN EXISTS((a)--(m))", this.movieId, this.actorId);
     			StatementResult result = session.run(match);
     			//check whether there is an existing record of movie before adding
     			Record rec = result.single();
